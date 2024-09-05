@@ -10,18 +10,31 @@ Erstelle ein PowerShell-Skript, das den Desktophintergrund ändert. Speichere da
 
 Beispielskript:
 
-$wallpapers = @("C:\Path\To\Wallpaper1.jpg", "C:\Path\To\Wallpaper2.jpg")
+$wallpapers = @("\\SRV-01\Shared\img7.jpg", "\\SRV-01\Shared\img8.jpg", "\\SRV-01\Shared\img9.jpg", "\\SRV-01\Shared\img710.jpg", "\\SRV-01\Shared\img11.jpg", "\\SRV-01\Shared\img12.jpg")
 $count = 0
+
+# Definiere die Funktion zum Setzen des Hintergrundbilds über user32.dll
+Add-Type @"
+    using System;
+    using System.Runtime.InteropServices;
+
+    public class Wallpaper {
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        public static extern int SystemParametersInfo(int uAction, int uParam, string lpvParam, int fuWinIni);
+    }
+"@
 
 while ($true) {
     $path = $wallpapers[$count % $wallpapers.Length]
     $count++
-    # Setze den Desktophintergrund
-    rundll32.exe user32.dll,UpdatePerUserSystemParameters
-    [System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms") | Out-Null
-    [System.Windows.Forms.SystemParametersInfo]::Set(0x0014, 0, $path, 0x0001)
 
-    Start-Sleep -Seconds 120  # Wartezeit von 2 Minuten
+    # Setze den Desktophintergrund
+    [Wallpaper]::SystemParametersInfo(0x0014, 0, $path, 0x0001)
+
+    # Aktualisiere die Anzeigeeinstellungen (optional, aber in einigen Fällen nützlich)
+    rundll32.exe user32.dll,UpdatePerUserSystemParameters
+
+    Start-Sleep -Seconds 20  # Wartezeit von 20 Sekunden
 }
 
 
@@ -49,7 +62,7 @@ Wähle Lokal erzwungene Skripts zulassen aus.
 PowerShell-Einstellungen konfigurieren:
 
 Navigiere zu Computerkonfiguration > Richtlinien > Administrative Vorlagen > System > Gruppenrichtlinien.
-Doppelklicke auf Warten auf die Netzwerkverbindung deaktivieren und setze sie auf Deaktiviert.
+Doppelklicke auf "Wartezeit für Richtlinienverarbeitung beim Systemstart angeben" -> Warten auf die Netzwerkverbindung deaktivieren und setze sie auf Deaktiviert.
 Schritt 3: Anwenden und Testen des GPOs
 GPO anwenden:
 
